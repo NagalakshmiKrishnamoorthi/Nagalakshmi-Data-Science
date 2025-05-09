@@ -1,0 +1,203 @@
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from keras.models import Sequential
+from keras.layers import Dense, LSTM
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.metrics import mean_squared_error
+import math
+
+import pandas as pd
+# Read the dataset
+df = pd.read_csv('customer_churn_dataset.csv', sep=';')
+
+# Display first few rows
+df.head()
+
+# Shape of the dataset
+print("Shape:", df.shape)
+# Column names
+print("Columns:", df.columns.tolist())
+# Data types and non-null values
+df.info()
+# Summary statistics for numeric features
+df.describe()# Check for missing values
+print(df.isnull().sum())
+# Check for duplicates
+print("Duplicate rows:", df.duplicated().sum())
+
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+# Assuming df is already loaded from your stock CSV
+sns.histplot(df['Tenure'], kde=True, color='skyblue')
+plt.title('Distribution of pridictiong customer')
+plt.xlabel('num support ticket')
+plt.ylabel('monthly charges')
+plt.show()
+
+sns.boxplot(x=pd.qcut(df['Tenure'], q=4), y='Age', data=df)
+plt.title('Num support Ticket')
+plt.xlabel('monthlycharge')
+plt.ylabel('num support ticket')
+plt.show()
+
+# Define target variable
+target = 'Age'
+# Define features (exclude target column)
+features = df.columns.drop(target)
+print("Target:", target)
+print("Features:", features.tolist())
+
+# Identify categorical columns
+categorical_cols = df.select_dtypes(include=['object']).columns
+print("Categorical Columns:", categorical_cols.tolist())
+
+# Identify categorical columns
+categorical_cols = df.select_dtypes(include=['object']).columns
+print("Categorical Columns:", categorical_cols.tolist())
+
+df_encoded = pd.get_dummies(df, drop_first=True)
+
+
+import pandas as pd
+from sklearn.preprocessing import StandardScaler
+
+# Example dataframe for demonstration (remove or replace this with your actual df_encoded)
+# df_encoded = pd.read_csv('your_data.csv')  # Uncomment and modify as needed
+
+# Drop 'NumSupportTickets' column if it exists
+if 'NumSupportTickets' in df_encoded.columns:
+    df_encoded = df_encoded.drop(columns=['NumSupportTickets'])
+
+# Define target and features
+target = 'MonthlyCharges'
+X = df_encoded.drop(columns=[target])
+y = df_encoded[target]
+
+# Select only numerical features for scaling
+numerical_features = X.select_dtypes(include=['number']).columns
+X_numerical = X[numerical_features]
+
+# Standardize numerical feature values
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X_numerical)
+
+# Convert scaled data back to a DataFrame
+X_scaled_df = pd.DataFrame(X_scaled, columns=numerical_features, index=X.index)
+
+# Output the scaled DataFrame (or part of it)
+print(X_scaled_df.head())
+
+
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error, r2_score
+
+# Split the data into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.2, random_state=42)
+
+# Initialize and train the model
+model = LinearRegression()
+model.fit(X_train, y_train)
+
+# Make predictions
+y_pred = model.predict(X_test)
+
+# Evaluate the model
+mse = mean_squared_error(y_test, y_pred)
+r2 = r2_score(y_test, y_pred)
+
+# Print evaluation results
+print("Mean Squared Error (MSE):", mse)
+print("R-squared (R²):", r2)
+
+
+print("MSE:", mean_squared_error(y_test, y_pred))
+print("R² Score:", r2_score(y_test, y_pred))
+
+
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error, r2_score
+import numpy as np
+
+# Split data
+X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.2, random_state=42)
+
+# Train model
+model = LinearRegression()
+model.fit(X_train, y_train)
+
+# Predict
+y_pred = model.predict(X_test)
+
+# Convert y_test to NumPy array to ensure index match
+y_test_array = np.array(y_test)
+
+# Show first 5 predictions vs actuals
+print("First 5 Predictions vs Actual Values:")
+for i in range(5):
+    print(f"Predicted: {y_pred[i]:.2f}, Actual: {y_test_array[i]:.2f}")
+
+# Evaluate model
+mse = mean_squared_error(y_test_array, y_pred)
+r2 = r2_score(y_test_array, y_pred)
+
+print("\nModel Evaluation:")
+print(f"Mean Squared Error: {mse:.2f}")
+print(f"R-squared: {r2:.2f}")
+
+# Confirm script ran
+print("\n✅ Script completed successfully.")
+
+
+!pip install gradio
+
+
+import gradio as gr
+import pandas as pd
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import train_test_split
+
+# Load dataset
+df = pd.read_csv('/content/customer_churn_dataset.csv')  # Replace with your correct path
+df = df.drop(columns=['CustomerID'])  # Drop unwanted column
+
+# Define features and target
+X = df.drop(columns=['Tenure'])
+y = df['Tenure']
+
+# Only use numeric columns
+X = X.select_dtypes(include='number')
+
+# Scale the features
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+
+# Train model
+model = LinearRegression()
+model.fit(X_scaled, y)
+
+# Gradio interface input labels must match feature names
+feature_names = X.columns.tolist()
+
+# Gradio prediction function
+def predict_tenure(*args):
+    input_data = {feature: float(value) for feature, value in zip(feature_names, args)}
+    input_df = pd.DataFrame([input_data])
+    input_scaled = scaler.transform(input_df)
+    prediction = model.predict(input_scaled)
+    return f"Predicted Tenure: {round(prediction[0], 2)} months"
+
+# Build the interface dynamically from feature names
+inputs = [gr.Number(label=feature) for feature in feature_names]
+outputs = gr.Textbox()
+
+# Launch the app
+gr.Interface(fn=predict_tenure, inputs=inputs, outputs=outputs, title="Customer Tenure Predictor").launch()
+
+
+
+
